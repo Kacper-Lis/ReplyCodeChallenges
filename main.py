@@ -180,7 +180,7 @@ def solution(tiles):
                 # From left to right
                 x_diff += 1
                 current_x += 1
-                if current_x == 0:
+                if x_diff == 0:
                     if y_diff > 0:
                         add_to_grid(grid, current_x, current_y, "DL")
                     else:
@@ -191,11 +191,11 @@ def solution(tiles):
                 # From right to left
                 x_diff -= 1
                 current_x -= 1
-                if current_x == 0:
+                if x_diff == 0:
                     if y_diff > 0:
-                        add_to_grid(grid, current_x, current_y, "DR")
-                    else:
                         add_to_grid(grid, current_x, current_y, "UR")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "DR")
                 else:
                     add_to_grid(grid, current_x, current_y, "LR")
         while y_diff != 0:
@@ -221,19 +221,20 @@ def solution(tiles):
 
             # Loop through all the Tiles that can support this movement
             for tile_id_c in common_tile_ids:
-
-                if tile_manager.check_if_tile_is_avaliable(tile_id_c):
-                    tile_id_to_place = tile_manager.get_tile(tile_id_c)
-                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
+                if tiles[tile_id_c].num_of_tiles > 0:
+                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_c))
+                    tiles[tile_id_c].num_of_tiles -= 1
                     break
         else:
-            # More than a single direction
-
-
-            # Get the tile based on the directions:
-            tile_id_to_place = tile_manager.get_tile_based_on_direction_list(tile.directions)
-            tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
-            break
+            list_of_dirs = []
+            for direction in tile.directions:
+                list_of_dirs.append(tile_direction(direction))
+            common_tile_ids = find_common_elements(list_of_dirs)
+            for tile_id_c in common_tile_ids:
+                if tiles[tile_id_c].num_of_tiles > 0:
+                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_c))
+                    tiles[tile_id_c].num_of_tiles -= 1
+                    break
 
     return tile_placement
 
@@ -245,21 +246,21 @@ if __name__ == "__main__":
     file_3 = "03-adventure.txt"
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
+    file_list = [file_0, file_1, file_2, file_3, file_4, file_5]
+    for current_file in file_list:
 
-    current_file = file_1
+        W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
-    W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
+        print(f"Width: {W}, Height: {H}, Golden Points: {Gn}, Silver Points: {Sm}, Tiles Types: {Tl}")
+        for golden_point in golden_points:
+            print(f"Golden Point x:{golden_point.x}|y:{golden_point.y}")
+        for silver_point in silver_points:
+            print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
+        for tile_key, tile in tiles.items():
+            print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
 
-    print(f"Width: {W}, Height: {H}, Golden Points: {Gn}, Silver Points: {Sm}, Tiles Types: {Tl}")
-    for golden_point in golden_points:
-        print(f"Golden Point x:{golden_point.x}|y:{golden_point.y}")
-    for silver_point in silver_points:
-        print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
-    for tile_key, tile in tiles.items():
-        print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
+        map_tiles = []
 
-    map_tiles = []
+        data_solution = solution(tiles.values())
 
-    data_solution = solution(tiles.values())
-
-    output_results(current_file)
+        output_results(current_file)
