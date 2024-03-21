@@ -62,7 +62,7 @@ class TileManager():
         # Get the first matching tile ID, Returns None if no tile ID matches all directions
         tile_id = next(iter(matching_tile_ids), None)
 
-        return tile_id
+        return self.tile_dictionary[tile_id]
         
 
     def get_tile(self, tile_id):
