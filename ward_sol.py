@@ -73,3 +73,10 @@ class TileManager():
             raise Exception("NO TILE TYPE DETECTED")
 
 
+class PathFinder():
+    '''Gets a selected golden point and finds the path to the nearest silver or golden point'''
+
+    def __init__(self, golden_point_list, silver_point_list, golden_point):
+        self.golden_point_list = golden_point_list
+        self.silver_point_list = silver_point_list
+        self.golden_point = golden_point
