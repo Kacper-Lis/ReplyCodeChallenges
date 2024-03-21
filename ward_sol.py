@@ -1,4 +1,4 @@
-
+import heapq
 
 class TILE_MAPPINGS:
     id_to_directions = {
@@ -83,14 +83,148 @@ class TileManager():
         if tile_id in self.tile_avaliability_dict:
             self.tile_avaliability_dict[tile_id] -= 1
             return self.tile_dictionary[tile_id].id
+        elif tile_id.id in self.tile_avaliability_dict:
+            self.tile_avaliability_dict[tile_id.id] -= 1
+            return tile_id.id
         else:
             raise Exception("NO TILE TYPE DETECTED")
+
+    def get_cheapest_tile_with_directions(self, directions):
+        direction_tiles = self.get_tile_based_on_direction_list(directions)
+
+        cheapest_tile_cost = 999999999999999999999999
+        cheapest_tile = direction_tiles[0]
+
+        for tile in direction_tiles:
+            if self.check_if_tile_is_avaliable(tile):
+                if self.tile_dictionary[tile].cost < cheapest_tile_cost:
+                    cheapest_tile_cost = self.tile_dictionary[tile].cost
+                    cheapest_tile = self.tile_dictionary[tile]
+
+        return cheapest_tile
 
 
 class PathFinder():
     '''Gets a selected golden point and finds the path to the nearest silver or golden point'''
 
-    def __init__(self, golden_point_list, silver_point_list, golden_point):
+    def __init__(self, golden_point_list, silver_point_list, golden_point, tilemanager, width, height):
         self.golden_point_list = golden_point_list
         self.silver_point_list = silver_point_list
         self.golden_point = golden_point
+
+        self.tile_manager = tilemanager
+        self.tilemap = TileMap(width, height)
+
+        self.create_golden_paths()
+
+    def create_golden_paths(self):
+        tolerance = 20 # Get the points within this amount
+
+        silver_point_list = []
+        closest_golden_points = []
+        closest_golden_point_distance = 999999999999
+        second_closest_golden_point_distance = 9999999999999
+
+        for silver_point in self.silver_point_list:
+            x_diff = abs(silver_point.x - self.golden_point.x)
+            y_diff = abs(silver_point.y - self.golden_point.y)
+            if x_diff < tolerance and y_diff < tolerance:
+                silver_point_list.append(silver_point)
+
+        for golden_point in self.golden_point_list:
+            x_diff = abs(golden_point.x - self.golden_point.x)
+            y_diff = abs(golden_point.y - self.golden_point.y)
+            distance = x_diff + y_diff
+            if distance < closest_golden_point_distance:
+                closest_golden_points.append(golden_point)
+                closest_golden_point_distance = distance
+            elif distance < second_closest_golden_point_distance:
+                closest_golden_points.append(golden_point)
+
+        # Got the Silver points within list and Golden points
+        for silver_point in silver_point_list:
+            self.create_path(self.golden_point, silver_point)
+
+        for golden_point in self.golden_point_list:
+            self.create_path(self.golden_point, golden_point)
+
+        return self.tilemap.compile_solution()
+
+    def create_path(self, golden_point, silver_point):
+        diff_x = silver_point.x - golden_point.x
+        diff_y = silver_point.y - golden_point.y
+
+        # Select cheapest option
+        # Get the amount of R's or L's
+        # Diff x - if negative: L, if positive: R
+        # Diff y - if negative: U, if positive: D
+
+        current_pos_x = golden_point.x
+        current_pos_y = golden_point.y
+
+        # Start path creation
+        path = []
+        current_path_cost = 0
+
+        while diff_x != 0:
+            if diff_x < 0:
+                path.append("LR")
+                cheapest_tile = self.tile_manager.get_cheapest_tile_with_directions(path)
+                # current_path_cost += self.tile_manager.tile_dictionary[cheapest_tile].cost
+                self.tilemap.add_tile(current_pos_x, current_pos_y, cheapest_tile)
+                self.tile_manager.get_tile(cheapest_tile.id)
+
+                current_pos_x -= 1
+                path = []
+
+            elif diff_x > 0:
+                path.append("RL")
+                cheapest_tile = self.tile_manager.get_cheapest_tile_with_directions(path)
+                # current_path_cost += self.tile_manager.tile_dictionary[cheapest_tile].cost
+                self.tilemap.add_tile(current_pos_x, current_pos_y, cheapest_tile)
+                self.tile_manager.get_tile(cheapest_tile)
+
+                current_pos_x += 1
+                path = []
+
+        path = ["RL"]
+
+        while diff_y != 0:
+            if diff_y < 0:
+                path.append("UD")
+                cheapest_tile = self.tile_manager.get_cheapest_tile_with_directions(path)
+                # current_path_cost += self.tile_manager.tile_dictionary[cheapest_tile].cost
+                self.tilemap.add_tile(current_pos_x, current_pos_y, cheapest_tile)
+                self.tile_manager.get_tile(cheapest_tile.id)
+
+                current_pos_y += 1
+                path = []
+
+            elif diff_y > 0:
+                path.append("DU")
+                cheapest_tile = self.tile_manager.get_cheapest_tile_with_directions(path)
+                # current_path_cost += self.tile_manager.tile_dictionary[cheapest_tile].cost
+                self.tilemap.add_tile(current_pos_x, current_pos_y, cheapest_tile)
+                self.tile_manager.get_tile(cheapest_tile.id)
+
+                current_pos_y -= 1
+                path = []
+
+class TileMap():
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.grid = [[None for i in range(width)] for j in range(height)]
+
+    def add_tile(self, x, y, tile):
+        print(len(self.grid[:][y]))
+        self.grid[x][y] = tile
+
+    def compile_solution(self):
+        output = []
+        for x in range(len(self.width)):
+            for y in range(len(self.height)):
+                if self.grid[x][y] is not None:
+                    output.append([self.grid[x][y], x, y])
+        return output
+

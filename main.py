@@ -1,4 +1,4 @@
-from ward_sol import TileManager
+from ward_sol import *
 
 class GoldenPoint:
     def __init__(self, x, y):
@@ -116,10 +116,10 @@ def parse_data(file_name):
 
     return W, H, Gn, Sm, Tl, golden_points, silver_points, tiles
 
-def output_results(file_name):
+def output_results(file_name, data_solution):
      with open(f'out_{file_name}.txt', mode='w') as file:
         for row in data_solution:
-            file.write(f"{row.directions[0]} {row.x} {row.y}\n")
+            file.write(f"{row[0]} {row[1]} {row[2]}\n")
 
 def find_common_elements(sets):
     common_elements = sets[0]  # Start with the first set
@@ -152,15 +152,12 @@ def add_to_grid(grid, x, y, direction):
 def solution(tiles):
 
     # Create the Tile Manager
-    tile_manager = TileManager(tiles)
+    tile_manager = TileManager(tiles.values())
 
     # Get the middle point on the Grid
     middle_x, middle_y = calculate_middle_point()
     grid = [[None for _ in range(H)] for _ in range(W)]
     print(f"Middle Point: x:{middle_x}|y:{middle_y}")
-
-    # Initialize the GRID to Nones intially
-    grid = [[None for _ in range(W)] for _ in range(H)]
 
 
     # Loop through all of the golden points
@@ -261,6 +258,7 @@ if __name__ == "__main__":
 
         map_tiles = []
 
-        data_solution = solution(tiles.values())
-
-        output_results(current_file)
+        # data_solution = solution(tiles)
+        pf = PathFinder(golden_points, silver_points, golden_points[0], TileManager(tiles.values()), W, H)
+        data_solution = pf.tilemap.compile_solution()
+        output_results(current_file, data_solution)
