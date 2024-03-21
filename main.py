@@ -1,3 +1,5 @@
+from ward_sol import *
+
 class GoldenPoint:
     def __init__(self, x, y):
         self.x = x
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
 
-    current_file = file_1
+    current_file = file_0
 
     W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
@@ -126,6 +128,10 @@ if __name__ == "__main__":
         print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
     for tile_key, tile in tiles.items():
         print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
+
+    # Create Tile Manager
+    tile_manager = TileManager(tiles)
+
 
     data_solution = solution()
 
