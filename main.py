@@ -1,3 +1,5 @@
+from ward_sol import TileManager
+
 class GoldenPoint:
     def __init__(self, x, y):
         self.x = x
@@ -114,12 +116,10 @@ def parse_data(file_name):
 
     return W, H, Gn, Sm, Tl, golden_points, silver_points, tiles
 
-
 def output_results(file_name):
      with open(f'out_{file_name}.txt', mode='w') as file:
         for row in data_solution:
             file.write(f"{row.x} {row.y} {row.directions[0]}\n")
-
 
 def find_common_elements(sets):
     common_elements = sets[0]  # Start with the first set
@@ -149,15 +149,31 @@ def add_to_grid(grid, x, y, direction):
     else:
         grid[x][y].directions.append(direction)
 
-def solution():
+def solution(tiles):
+
+    # Create the Tile Manager
+    tile_manager = TileManager(tiles)
+
+    # Get the middle point on the Grid
     middle_x, middle_y = calculate_middle_point()
-    grid = [[None for _ in range(W)] for _ in range(H)]
     print(f"Middle Point: x:{middle_x}|y:{middle_y}")
+
+    # Initialize the GRID to Nones intially
+    grid = [[None for _ in range(W)] for _ in range(H)]
+
+
+    # Loop through all of the golden points
     for golden_point in golden_points:
+
+        # Calculate the Differences
         x_diff = golden_point.x - middle_x
         y_diff = golden_point.y - middle_y
+
+        # Set the starting Golden Point positions
         current_x = golden_point.x
         current_y = golden_point.y
+
+        # Go until the marker is not on the middle point X-Axis
         while x_diff != 0:
             if x_diff < 0:
                 # From left to right
@@ -169,6 +185,8 @@ def solution():
                 x_diff -= 1
                 current_x -= 1
                 add_to_grid(grid, current_x, current_y, "RL")
+
+        # Go until the marker is not on the middle point Y-Axis
         while y_diff != 0:
             if y_diff > 0:
                 # From down to up
@@ -182,22 +200,31 @@ def solution():
                 add_to_grid(grid, current_x, current_y, "UD")
 
     tile_placement = []
-    for route in map_tiles:
-        if len(route.directions) == 1:
-            common_tile_ids = tile_direction(route.directions[0])
+
+    # Loops through the created tiles in map_tiles
+    for tile in map_tiles:
+        if len(tile.directions) == 1:
+
+            # Get all the tiles that allow for this simple movement
+            common_tile_ids = tile_direction(tile.directions[0])
+
+            # Loop through all the Tiles that can support this movement
             for tile_id_c in common_tile_ids:
-                if tiles[tile_id_c].num_of_tiles > 0:
-                    tile_placement.append(MapPoint(route.x, route.y, tile_id_c))
-                    tiles[tile_id_c].num_of_tiles -= 1
+
+                if tile_manager.check_if_tile_is_avaliable(tile_id_c):
+                    tile_id_to_place = tile_manager.get_tile(tile_id_c)
+                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
         else:
+            # More than a single direction
+
+            # Get the total list of directions
             list_of_dirs = []
-            for direction in route.directions:
+            for direction in tile.directions:
                 list_of_dirs.append(tile_direction(direction))
-            common_tile_ids = find_common_elements(list_of_dirs)
-            for tile_id_c in common_tile_ids:
-                if tiles[tile_id_c].num_of_tiles > 0:
-                    tile_placement.append(MapPoint(route.x, route.y, tile_id_c))
-                    tiles[tile_id_c].num_of_tiles -= 1
+
+            # Get the tile based on the directions:
+            tile_id_to_place = tile_manager.get_tile_based_on_direction_list(tile.directions)
+            tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
 
     return tile_placement
 
@@ -210,7 +237,7 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
 
-    current_file = file_1
+    current_file = file_0
 
     W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
@@ -224,6 +251,6 @@ if __name__ == "__main__":
 
     map_tiles = []
 
-    data_solution = solution()
+    data_solution = solution(tiles.values())
 
     output_results(current_file)
