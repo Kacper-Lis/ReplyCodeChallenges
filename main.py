@@ -246,7 +246,7 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
 
-    current_file = file_0
+    current_file = file_1
 
     W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
