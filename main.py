@@ -19,7 +19,37 @@ class SilverPoint:
 
 
 def tile_direction():
-    pass
+    {
+        "3": "LR",
+        "5": "DR",
+        "6": "LD",
+        "7": "LR LD DR",
+        "9": "UR",
+        "96": "LD UR",
+        "A": "LU",
+        "A5": "LU DR",
+        "B": "LR LU UR",
+        "C": "UD",
+        "C3": "LR UD",
+        "D": "UD UR DR",
+        "E": "LU LD UD",
+        "F": "LR LD LU UD DR UR",
+    }
+    {
+        "LR": ["3", "7", "B", "C3", "F"],
+        "UD": ["C", "C3", "D", "E", "F"],
+        "LU": ["A", "A5", "B", "E", "F"],
+        "LD": ["6", "7", "96", "E", "F"],
+        "UR": ["9", "96", "B", "D", "F"],
+        "DR": ["5", "7", "A5", "D", "F"],
+        #Same but opposite
+        "RL": ["3", "7", "B", "C3", "F"],
+        "DU": ["C", "C3", "D", "E", "F"],
+        "UL": ["A", "A5", "B", "E", "F"],
+        "DL": ["6", "7", "96", "E", "F"],
+        "RU": ["9", "96", "B", "D", "F"],
+        "RD": ["5", "7", "A5", "D", "F"],
+    }
 
 
 def parse_data(file_name):
@@ -70,7 +100,10 @@ def output_results(file_name):
 
 
 def solution():
-    results = ["solution1", "solution2"]
+    results = []
+    for i in range(W):
+        for j in range(H):
+            pass
     return results
 
 
@@ -82,7 +115,7 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
 
-    current_file = file_0
+    current_file = file_1
 
     W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
@@ -93,6 +126,7 @@ if __name__ == "__main__":
         print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
     for tile_key, tile in tiles.items():
         print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
+
     data_solution = solution()
 
     output_results(current_file)
