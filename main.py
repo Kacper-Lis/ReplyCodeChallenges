@@ -119,7 +119,7 @@ def parse_data(file_name):
 def output_results(file_name):
      with open(f'out_{file_name}.txt', mode='w') as file:
         for row in data_solution:
-            file.write(f"{row.x} {row.y} {row.directions[0]}\n")
+            file.write(f"{row.directions[0]} {row.x} {row.y}\n")
 
 def find_common_elements(sets):
     common_elements = sets[0]  # Start with the first set
@@ -139,7 +139,7 @@ def calculate_middle_point():
     middle_x = total_x / len(golden_points)
     middle_y = total_y / len(golden_points)
 
-    return middle_x, middle_y
+    return int(middle_x), int(middle_y)
 
 
 def add_to_grid(grid, x, y, direction):
@@ -156,6 +156,7 @@ def solution(tiles):
 
     # Get the middle point on the Grid
     middle_x, middle_y = calculate_middle_point()
+    grid = [[None for _ in range(H)] for _ in range(W)]
     print(f"Middle Point: x:{middle_x}|y:{middle_y}")
 
     # Initialize the GRID to Nones intially
@@ -179,20 +180,30 @@ def solution(tiles):
                 # From left to right
                 x_diff += 1
                 current_x += 1
-                add_to_grid(grid, current_x, current_y, "LR")
+                if current_x == 0:
+                    if y_diff > 0:
+                        add_to_grid(grid, current_x, current_y, "DL")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "UL")
+                else:
+                    add_to_grid(grid, current_x, current_y, "LR")
             else:
                 # From right to left
                 x_diff -= 1
                 current_x -= 1
-                add_to_grid(grid, current_x, current_y, "RL")
-
-        # Go until the marker is not on the middle point Y-Axis
+                if current_x == 0:
+                    if y_diff > 0:
+                        add_to_grid(grid, current_x, current_y, "DR")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "UR")
+                else:
+                    add_to_grid(grid, current_x, current_y, "LR")
         while y_diff != 0:
             if y_diff > 0:
                 # From down to up
                 y_diff -= 1
                 current_y -= 1
-                add_to_grid(grid, current_x, current_y, "DU")
+                add_to_grid(grid, current_x, current_y, "UD")
             else:
                 # From up to down
                 y_diff += 1
@@ -214,17 +225,15 @@ def solution(tiles):
                 if tile_manager.check_if_tile_is_avaliable(tile_id_c):
                     tile_id_to_place = tile_manager.get_tile(tile_id_c)
                     tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
+                    break
         else:
             # More than a single direction
 
-            # Get the total list of directions
-            list_of_dirs = []
-            for direction in tile.directions:
-                list_of_dirs.append(tile_direction(direction))
 
             # Get the tile based on the directions:
             tile_id_to_place = tile_manager.get_tile_based_on_direction_list(tile.directions)
             tile_placement.append(MapPoint(tile.x, tile.y, tile_id_to_place))
+            break
 
     return tile_placement
 
