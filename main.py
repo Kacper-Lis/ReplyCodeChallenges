@@ -118,7 +118,7 @@ def parse_data(file_name):
 def output_results(file_name):
      with open(f'out_{file_name}.txt', mode='w') as file:
         for row in data_solution:
-            file.write(f"{row.x} {row.y} {row.directions[0]}\n")
+            file.write(f"{row.directions[0]} {row.x} {row.y}\n")
 
 
 def find_common_elements(sets):
@@ -139,7 +139,7 @@ def calculate_middle_point():
     middle_x = total_x / len(golden_points)
     middle_y = total_y / len(golden_points)
 
-    return middle_x, middle_y
+    return int(middle_x), int(middle_y)
 
 
 def add_to_grid(grid, x, y, direction):
@@ -151,7 +151,7 @@ def add_to_grid(grid, x, y, direction):
 
 def solution():
     middle_x, middle_y = calculate_middle_point()
-    grid = [[None for _ in range(W)] for _ in range(H)]
+    grid = [[None for _ in range(H)] for _ in range(W)]
     print(f"Middle Point: x:{middle_x}|y:{middle_y}")
     for golden_point in golden_points:
         x_diff = golden_point.x - middle_x
@@ -163,18 +163,30 @@ def solution():
                 # From left to right
                 x_diff += 1
                 current_x += 1
-                add_to_grid(grid, current_x, current_y, "LR")
+                if current_x == 0:
+                    if y_diff > 0:
+                        add_to_grid(grid, current_x, current_y, "DL")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "UL")
+                else:
+                    add_to_grid(grid, current_x, current_y, "LR")
             else:
                 # From right to left
                 x_diff -= 1
                 current_x -= 1
-                add_to_grid(grid, current_x, current_y, "RL")
+                if current_x == 0:
+                    if y_diff > 0:
+                        add_to_grid(grid, current_x, current_y, "DR")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "UR")
+                else:
+                    add_to_grid(grid, current_x, current_y, "LR")
         while y_diff != 0:
             if y_diff > 0:
                 # From down to up
                 y_diff -= 1
                 current_y -= 1
-                add_to_grid(grid, current_x, current_y, "DU")
+                add_to_grid(grid, current_x, current_y, "UD")
             else:
                 # From up to down
                 y_diff += 1
@@ -182,22 +194,24 @@ def solution():
                 add_to_grid(grid, current_x, current_y, "UD")
 
     tile_placement = []
-    for route in map_tiles:
-        if len(route.directions) == 1:
-            common_tile_ids = tile_direction(route.directions[0])
+    for tile in map_tiles:
+        if len(tile.directions) == 1:
+            common_tile_ids = tile_direction(tile.directions[0])
             for tile_id_c in common_tile_ids:
                 if tiles[tile_id_c].num_of_tiles > 0:
-                    tile_placement.append(MapPoint(route.x, route.y, tile_id_c))
+                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_c))
                     tiles[tile_id_c].num_of_tiles -= 1
+                    break
         else:
             list_of_dirs = []
-            for direction in route.directions:
+            for direction in tile.directions:
                 list_of_dirs.append(tile_direction(direction))
             common_tile_ids = find_common_elements(list_of_dirs)
             for tile_id_c in common_tile_ids:
                 if tiles[tile_id_c].num_of_tiles > 0:
-                    tile_placement.append(MapPoint(route.x, route.y, tile_id_c))
+                    tile_placement.append(MapPoint(tile.x, tile.y, tile_id_c))
                     tiles[tile_id_c].num_of_tiles -= 1
+                    break
 
     return tile_placement
 
@@ -210,7 +224,7 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
 
-    current_file = file_1
+    current_file = file_5
 
     W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
