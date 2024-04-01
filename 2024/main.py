@@ -1,8 +1,11 @@
+import math
+
+
 class GoldenPoint:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-
+        self.silver = []
 
 class Tile:
     def __init__(self, id, cost, num_of_tiles):
@@ -16,7 +19,10 @@ class SilverPoint:
         self.x = x
         self.y = y
         self.score = score
+        self.distance = 0
 
+    def calculate_distance(self, other_point):
+        return math.sqrt((self.x - other_point.x)**2 + (self.y - other_point.y)**2)
 
 class MapPoint:
     def __init__(self, x, y, direction):
@@ -149,49 +155,132 @@ def add_to_grid(grid, x, y, direction):
     else:
         grid[x][y].directions.append(direction)
 
+
+def check_if_silver_is_in_area(silver_x, silver_y, g_x, g_y, mid_x, mid_y):
+    min_x = min(g_x, mid_x)
+    max_x = max(g_x, mid_x)
+    min_y = min(g_y, mid_y)
+    max_y = max(g_y, mid_y)
+
+    return min_x <= silver_x <= max_x and min_y <= silver_y <= max_y
+
+
+def calculate_distance(point1, point2):
+    x1, y1 = point1.x, point1.y
+    x2, y2 = point2.x, point2.y
+    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    return distance
+
+
+def calculate_distance_point_cords(point1, x2, y2):
+    x1, y1 = point1.x, point1.y
+    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    return distance
+
+
+def calculate_distance_point_cords1(x1, y1, x2, y2):
+    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    return distance
+
+
+def distance_key(point):
+    return point.distance
+
+
 def solution():
     middle_x, middle_y = calculate_middle_point()
     grid = [[None for _ in range(H)] for _ in range(W)]
     print(f"Middle Point: x:{middle_x}|y:{middle_y}")
     for golden_point in golden_points:
-        x_diff = golden_point.x - middle_x
-        y_diff = golden_point.y - middle_y
+        for silver_point in silver_points:
+            if check_if_silver_is_in_area(silver_point.x, silver_point.y, golden_point.x, golden_point.y, middle_x, middle_y):
+                golden_point.silver.append(silver_point)
+                silver_point.distance = calculate_distance_point_cords(silver_point, middle_x, middle_y)
+
+        golden_point.silver = sorted(golden_point.silver, key=distance_key, reverse=True)
+
+    for golden_point in golden_points:
         current_x = golden_point.x
         current_y = golden_point.y
-        while x_diff != 0:
-            if x_diff < 0:
-                # From left to right
-                x_diff += 1
-                current_x += 1
-                if x_diff == 0:
-                    if y_diff > 0:
-                        add_to_grid(grid, current_x, current_y, "DL")
+        for silver in golden_point.silver:
+            if silver.distance < calculate_distance_point_cords1(current_x, current_y, middle_x, middle_y):
+
+                x_diff = current_x - silver.x
+                y_diff = current_y - silver.y
+
+                while x_diff != 0:
+                    if x_diff < 0:
+                        # From left to right
+                        x_diff += 1
+                        current_x += 1
+                        if x_diff == 0:
+                            if y_diff > 0:
+                                add_to_grid(grid, current_x, current_y, "DL")
+                            else:
+                                add_to_grid(grid, current_x, current_y, "UL")
+                        else:
+                            add_to_grid(grid, current_x, current_y, "LR")
                     else:
-                        add_to_grid(grid, current_x, current_y, "UL")
-                else:
-                    add_to_grid(grid, current_x, current_y, "LR")
-            else:
-                # From right to left
-                x_diff -= 1
-                current_x -= 1
-                if x_diff == 0:
+                        # From right to left
+                        x_diff -= 1
+                        current_x -= 1
+                        if x_diff == 0:
+                            if y_diff > 0:
+                                add_to_grid(grid, current_x, current_y, "UR")
+                            else:
+                                add_to_grid(grid, current_x, current_y, "DR")
+                        else:
+                            add_to_grid(grid, current_x, current_y, "LR")
+                while y_diff != 0:
                     if y_diff > 0:
-                        add_to_grid(grid, current_x, current_y, "UR")
+                        # From down to up
+                        y_diff -= 1
+                        current_y -= 1
+                        add_to_grid(grid, current_x, current_y, "UD")
                     else:
-                        add_to_grid(grid, current_x, current_y, "DR")
+                        # From up to down
+                        y_diff += 1
+                        current_y += 1
+                        add_to_grid(grid, current_x, current_y, "UD")
+        while current_x != middle_x and current_y != middle_y:
+            x_diff = current_x - middle_x
+            y_diff = current_y - middle_y
+
+            while x_diff != 0:
+                if x_diff < 0:
+                    # From left to right
+                    x_diff += 1
+                    current_x += 1
+                    if x_diff == 0:
+                        if y_diff > 0:
+                            add_to_grid(grid, current_x, current_y, "DL")
+                        else:
+                            add_to_grid(grid, current_x, current_y, "UL")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "LR")
                 else:
-                    add_to_grid(grid, current_x, current_y, "LR")
-        while y_diff != 0:
-            if y_diff > 0:
-                # From down to up
-                y_diff -= 1
-                current_y -= 1
-                add_to_grid(grid, current_x, current_y, "UD")
-            else:
-                # From up to down
-                y_diff += 1
-                current_y += 1
-                add_to_grid(grid, current_x, current_y, "UD")
+                    # From right to left
+                    x_diff -= 1
+                    current_x -= 1
+                    if x_diff == 0:
+                        if y_diff > 0:
+                            add_to_grid(grid, current_x, current_y, "UR")
+                        else:
+                            add_to_grid(grid, current_x, current_y, "DR")
+                    else:
+                        add_to_grid(grid, current_x, current_y, "LR")
+            while y_diff != 0:
+                if y_diff > 0:
+                    # From down to up
+                    y_diff -= 1
+                    current_y -= 1
+                    add_to_grid(grid, current_x, current_y, "UD")
+                else:
+                    # From up to down
+                    y_diff += 1
+                    current_y += 1
+                    add_to_grid(grid, current_x, current_y, "UD")
+
 
     tile_placement = []
     for tile in map_tiles:
@@ -224,17 +313,18 @@ if __name__ == "__main__":
     file_4 = "04-drama.txt"
     file_5 = "05-horror.txt"
     file_list = [file_0, file_1, file_2, file_3, file_4, file_5]
+    # file_list = [file_4, file_5]
     for current_file in file_list:
-
+        print(current_file)
         W, H, Gn, Sm, Tl, golden_points, silver_points, tiles = parse_data(current_file)
 
-        print(f"Width: {W}, Height: {H}, Golden Points: {Gn}, Silver Points: {Sm}, Tiles Types: {Tl}")
-        for golden_point in golden_points:
-            print(f"Golden Point x:{golden_point.x}|y:{golden_point.y}")
-        for silver_point in silver_points:
-            print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
-        for tile_key, tile in tiles.items():
-            print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
+        # print(f"Width: {W}, Height: {H}, Golden Points: {Gn}, Silver Points: {Sm}, Tiles Types: {Tl}")
+        # for golden_point in golden_points:
+        #     print(f"Golden Point x:{golden_point.x}|y:{golden_point.y}")
+        # for silver_point in silver_points:
+        #     print(f"Silver Point x:{silver_point.x}|y:{silver_point.y}|score:{silver_point.score}")
+        # for tile_key, tile in tiles.items():
+        #     print(f"Tile id:{tile_key}|cost:{tile.cost}|num:{tile.num_of_tiles}")
 
         map_tiles = []
 
